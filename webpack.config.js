@@ -7,19 +7,14 @@ var distFolderPath = "dist",
     Path = require('path'),
     production = NODE_ENV === "production",
     plugins = [
-        //clean dist folder before build
-        new CleanWebpackPlugin([distFolderPath], {
-            //root: '/full/project/path',
-            //verbose: true,
-            //dry: false
-        }),
+        //Exclude vendors from dist
+        new webpack.optimize.CommonsChunkPlugin('vendors', 'vendors.js')
     ],
     entry = {},
     vendors = Object.keys(packageJson.dependencies),
     nodeModulesDir = Path.resolve(__dirname, '../node_modules');
 
-console.log("NODE_ENV === " + NODE_ENV)
-
+console.log(Path.resolve(__dirname));
 
 // plugins included only in production environment
 if (production) {
@@ -38,10 +33,7 @@ if (production) {
 }
 
 entry["app"] = [packageJson.main];
-// add entry for vendor bundle
 entry["vendors"] = vendors; //add every vendor here
-
-console.log(entry["vendors"])
 
 module.exports = {
     debug: !production, //switch loader to debug mode
@@ -49,15 +41,11 @@ module.exports = {
     entry: entry,
     output: {
         path: Path.join(__dirname, distFolderPath),
-        //hash for long term cache
-        filename: production ? packageJson.name + '.min.js' : packageJson.name + ".js",
-        //chunkFilename: 'chunk-[id].[hash].js'
+        filename: production ? packageJson.name + '.js' : packageJson.name + ".js", //add min
     },
     resolve: {
         root: Path.resolve(__dirname),
         alias: {
-            module :  packageJson.name + ".min.js",
-            __config :  Path.join(__dirname, "src/config"),
             handlebars: 'handlebars/dist/handlebars.min.js'
         }
     },
@@ -79,7 +67,6 @@ module.exports = {
             __DEVELOPMENT__: !production,
             VERSION: JSON.stringify(packageJson.version)
         }),
-        new webpack.optimize.CommonsChunkPlugin('vendors', 'vendors.js')
     ]),
 
     // more options in the optional jshint object
