@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "NODE_ENV=test:ci webpack & COVERAGE=true karma start ./karma.config.js"
+    "test" : "mocha test/specs.js -w"
   },
   "repository": {
     "type": "git",
