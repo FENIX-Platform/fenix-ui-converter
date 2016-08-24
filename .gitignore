@@ -6,5 +6,5 @@ npm-debug.log
 Web.config
 **/.DS_Store
 .DS_Store
-/dist/
+/dist/vendors.js
 /coverage/

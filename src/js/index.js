@@ -15,8 +15,6 @@ define([
         return this;
     }
 
-    /* CONVERTER */
-
     Converter.prototype.toD3P = function (items, values) {
 
         var filter = {},
