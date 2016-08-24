@@ -2,24 +2,26 @@ NODE_ENV = process.env.NODE_ENV;
 
 var distFolderPath = "dist",
     webpack = require('webpack'),
-    CleanWebpackPlugin = require('clean-webpack-plugin'),
     packageJson = require("./package.json"),
+    CleanWebpackPlugin = require('clean-webpack-plugin'),
     Path = require('path'),
     production = NODE_ENV === "production",
     plugins = [
-        //Exclude vendors from dist
-        new webpack.optimize.CommonsChunkPlugin('vendors', 'vendors.js')
+        new CleanWebpackPlugin([distFolderPath], {
+            //root: '/full/project/path',
+            //verbose: true,
+            //dry: false
+        }),
     ],
     entry = {},
-    vendors = Object.keys(packageJson.dependencies),
+    dependecies = Object.keys(packageJson.dependencies),
     nodeModulesDir = Path.resolve(__dirname, '../node_modules');
-
-console.log(Path.resolve(__dirname));
 
 // plugins included only in production environment
 if (production) {
 
     plugins = plugins.concat([
+        //clean dist folder before build
         // uglify
         new webpack.optimize.UglifyJsPlugin({
             compress: {
@@ -32,8 +34,7 @@ if (production) {
     ]);
 }
 
-entry["app"] = [packageJson.main];
-entry["vendors"] = vendors; //add every vendor here
+entry["app"] = ["src/js/index.js"];
 
 module.exports = {
     debug: !production, //switch loader to debug mode
@@ -41,7 +42,8 @@ module.exports = {
     entry: entry,
     output: {
         path: Path.join(__dirname, distFolderPath),
-        filename: production ? packageJson.name + '.js' : packageJson.name + ".js", //add min
+        filename: production ? packageJson.name + '.min.js' : packageJson.name + ".js", //add min
+        libraryTarget : 'umd'
     },
     resolve: {
         root: Path.resolve(__dirname),
@@ -49,6 +51,7 @@ module.exports = {
             handlebars: 'handlebars/dist/handlebars.min.js'
         }
     },
+    externals : dependecies,
     module: {
         //jshint
         preLoaders: [
