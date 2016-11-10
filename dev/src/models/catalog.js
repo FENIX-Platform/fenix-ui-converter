@@ -1,5 +1,25 @@
 module.exports = {
 
+    freeText: {
+
+
+
+        selector : {
+            id : "input",
+            type : "text"
+        },
+
+        template : {
+            hideRemoveButton : false
+        },
+
+        format : {
+            output : "freeText",
+            metadataAttribute: "freetext"
+        }
+
+    },
+
     resourceType: {
 
         enumeration : {
@@ -201,22 +221,6 @@ module.exports = {
         }
     },
 
-    freeText: {
 
-        selector : {
-            id : "input",
-            type : "text"
-        },
-
-        template : {
-            hideRemoveButton : false
-        },
-
-        format : {
-            output : "freeText",
-            metadataAttribute: "freetext"
-        }
-
-    },
 
 }

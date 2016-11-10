@@ -1,6 +1,6 @@
 {
   "name": "fenix-ui-converter",
-  "version": "1.0.0-beta.3",
+  "version": "1.0.0-beta.6",
   "description": "FENIX ui converter",
   "main": "dist/fenix-ui-converter.min.js",
   "directories": {
@@ -8,9 +8,10 @@
     "dist": "dist"
   },
   "scripts": {
-    "test" : "mocha test/specs.js -w",
+    "test": "mocha test/specs.js -w",
+    "dev": "NODE_ENV=develop webpack-dev-server --display-error-details --progress --color --content-base dev  --inline --hot",
     "build:production": "NODE_ENV=production webpack",
-    "build": "NODE_ENV=develop webpack"
+    "build": "NODE_ENV=production webpack --display-error-details --profile --json > stats.json"
   },
   "repository": {
     "type": "git",
@@ -33,12 +34,19 @@
     "underscore": "1.8.3"
   },
   "devDependencies": {
+    "bootstrap": "^3.3.7",
     "chai": "3.5.0",
     "clean-webpack-plugin": "0.1.10",
+    "css-loader": "^0.25.0",
+    "extract-text-webpack-plugin": "^1.0.1",
+    "file-loader": "^0.9.0",
+    "html-webpack-plugin": "^2.24.1",
     "jshint": "2.9.3",
     "jshint-loader": "0.8.3",
     "mocha": "3.0.2",
+    "style-loader": "^0.13.1",
+    "url-loader": "^0.5.7",
     "webpack": "1.13.2",
-    "webpack-dev-server": "1.15.0"
+    "webpack-dev-server": "^1.15.1"
   }
 }

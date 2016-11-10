@@ -83,7 +83,7 @@ define([
             tmpl;
 
         switch (output.toLocaleLowerCase()) {
-            case "freeText" :
+            case "freetext" :
 
                 return this.createFreeTextFilter(id, values, config, key);
 
@@ -188,7 +188,7 @@ define([
 
     Converter.prototype.createFreeTextFilter = function (id, values, config, key) {
 
-        return {freeText: values[0]};
+        return {text: values[0]};
     };
 
     Converter.prototype.cleanArray = function (actual) {

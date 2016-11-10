@@ -1,0 +1,475 @@
+{
+  "errors": [],
+  "warnings": [],
+  "version": "1.13.2",
+  "hash": "0494ffe7ae23e2710b3e",
+  "time": 253,
+  "publicPath": "",
+  "assetsByChunkName": {
+    "app": [
+      "fenix-ui-converter.min.js",
+      "fenix-ui-converter.min.js.map"
+    ]
+  },
+  "assets": [
+    {
+      "name": "fenix-ui-converter.min.js",
+      "size": 2975,
+      "chunks": [
+        0
+      ],
+      "chunkNames": [
+        "app"
+      ],
+      "emitted": true
+    },
+    {
+      "name": "fenix-ui-converter.min.js.map",
+      "size": 20781,
+      "chunks": [
+        0
+      ],
+      "chunkNames": [
+        "app"
+      ],
+      "emitted": true
+    }
+  ],
+  "chunks": [
+    {
+      "id": 0,
+      "rendered": true,
+      "initial": true,
+      "entry": true,
+      "extraAsync": false,
+      "size": 5589,
+      "names": [
+        "app"
+      ],
+      "files": [
+        "fenix-ui-converter.min.js",
+        "fenix-ui-converter.min.js.map"
+      ],
+      "hash": "92237a5721bb746f6fdb",
+      "parents": [],
+      "modules": [
+        {
+          "id": 0,
+          "identifier": "multi app",
+          "name": "multi app",
+          "index": 0,
+          "index2": 5,
+          "size": 28,
+          "cacheable": true,
+          "built": true,
+          "optional": false,
+          "prefetched": false,
+          "chunks": [
+            0
+          ],
+          "assets": [],
+          "issuer": null,
+          "profile": {
+            "factory": 0,
+            "building": 1
+          },
+          "failed": false,
+          "errors": 0,
+          "warnings": 0,
+          "reasons": []
+        },
+        {
+          "id": 1,
+          "identifier": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+          "name": "./src/js/index.js",
+          "index": 1,
+          "index2": 4,
+          "size": 5393,
+          "cacheable": true,
+          "built": true,
+          "optional": false,
+          "prefetched": false,
+          "chunks": [
+            0
+          ],
+          "assets": [],
+          "issuer": "multi app",
+          "profile": {
+            "factory": 12,
+            "building": 35
+          },
+          "failed": false,
+          "errors": 0,
+          "warnings": 0,
+          "reasons": [
+            {
+              "moduleId": 0,
+              "moduleIdentifier": "multi app",
+              "module": "multi app",
+              "moduleName": "multi app",
+              "type": "single entry",
+              "userRequest": "./src/js/index.js"
+            }
+          ],
+          "source": "if (typeof define !== 'function') {\n    var define = require('amdefine')(module);\n}\n\ndefine([\n    'jquery',\n    'underscore',\n    'loglevel',\n    'handlebars'\n], function ($, _, log, Handlebars) {\n\n    'use strict';\n\n    function Converter() {\n        return this;\n    }\n\n    Converter.prototype.toD3P = function (items, values) {\n\n        var filter = {},\n            self = this;\n\n        _.each(values.values, function (val, id) {\n\n            var v = self.cleanArray(val),\n                config = items[id] || {},\n                formatConfig = config.format || {};\n\n            var key = formatConfig.items || id;\n\n            if (v.length > 0) {\n                filter[key] = $.extend(true, {}, self.compileFilter(id, v, items));\n            } else {\n                log.warn(id + \" column excluded from FENIX conversion because it has no values\");\n            }\n\n        });\n\n        return filter;\n    };\n\n    Converter.prototype.toFilter = function (items, values) {\n\n        var filter = {},\n            self = this;\n\n        _.each(values.values, function (val, id) {\n\n            var v = self.cleanArray(val),\n                config = items[id] || {},\n                formatConfig = config.format || {};\n\n            var key = formatConfig.metadataAttribute;\n\n            if (!key) {\n                log.warn(id + \" impossible to find format.metadataAttribute configuration\");\n                return;\n            }\n\n            if (v.length > 0) {\n                filter[key] = $.extend(true, {}, self.compileFilter(id, v, items));\n            } else {\n                log.warn(id + \" column excluded from FENIX filter because it has no values\");\n            }\n\n        });\n\n        return filter;\n    };\n\n    Converter.prototype.compileFilter = function (id, values, items) {\n\n        var config = items[id] || {},\n            formatConfig = config.format || {},\n            template = formatConfig.template,\n            output = formatConfig.output || \"codes\";\n\n        if (template) {\n            return this.compileTemplate(id, values, config, template);\n        }\n\n        var key = formatConfig.dimension || id,\n            tmpl;\n\n        switch (output.toLocaleLowerCase()) {\n            case \"freetext\" :\n\n                return this.createFreeTextFilter(id, values, config, key);\n\n                break;\n            case \"codes\" :\n\n                tmpl = '{ \"codes\":[{\"uid\": \"{{{uid}}}\", \"version\": \"{{version}}\", \"codes\": [{{{codes}}}] } ]}';\n                return this.compileTemplate(id, values, config, key, tmpl);\n\n                break;\n            case \"time\" :\n\n                return this.createTimeFilter(id, values, config, confkey);\n                break;\n\n            case \"enumeration\" :\n\n                return this.createEnumerationFilter(id, values, config, key);\n                break;\n            default :\n                log.warn(id + \" not included in the result set. Missing format configuration.\");\n                return {};\n        }\n\n    };\n\n    Converter.prototype.compileTemplate = function (id, values, config, key, template) {\n\n        /*\n         Priority\n         - values\n         - format configuration\n         - code list configuration\n         */\n\n        var model = $.extend(true, config.cl, config.format, {codes: '\"' + values.join('\",\"') + '\"'});\n\n        if (!template) {\n            log.error(\"Impossible to find '\" + id + \"' process template. Check your '\" + id + \"'.filter.process configuration.\")\n        }\n\n        if (!model.uid) {\n            log.error(\"Impossible to find '\" + id + \"' code list configuration for FENIX output format export.\");\n            return;\n        }\n\n        var tmpl = Handlebars.compile(template),\n            process = JSON.parse(tmpl(model)),\n            codes = process.codes;\n\n        //Remove empty version attributes\n        _.each(codes, function (obj) {\n            if (!obj.version) {\n                delete obj.version;\n            }\n        });\n\n        return process;\n\n    };\n\n    Converter.prototype.createTimeFilter = function (id, values, config, key) {\n\n        var time = [],\n            valuesAreObject = typeof values[0] === 'object',\n            v;\n\n        if (valuesAreObject) {\n\n            var from = _.findWhere(values, {parent: \"from\"}) || {},\n                to = _.findWhere(values, {parent: \"to\"}) || {},\n                couple = {from: null, to: null};\n\n            couple.from = from.value;\n            couple.to = to.value;\n\n            time.push($.extend({}, couple));\n\n        } else {\n\n            v = values.map(function (a) {\n                return parseInt(a, 10);\n            }).sort(function (a, b) {\n                return a - b;\n            });\n\n\n            _.each(v, function (i) {\n                time.push({from: i, to: i});\n            });\n\n        }\n\n        return {time: time};\n    };\n\n    Converter.prototype.createEnumerationFilter = function (id, values, config, key) {\n\n        return {enumeration: values};\n\n    };\n\n    Converter.prototype.createFreeTextFilter = function (id, values, config, key) {\n\n        return {text: values[0]};\n    };\n\n    Converter.prototype.cleanArray = function (actual) {\n        var newArray = [];\n        for (var i = 0; i < actual.length; i++) {\n            if (actual[i]) {\n                newArray.push(actual[i]);\n            }\n        }\n        return newArray;\n    };\n\n    return new Converter();\n\n});"
+        },
+        {
+          "id": 2,
+          "identifier": "external \"jquery\"",
+          "name": "external \"jquery\"",
+          "index": 2,
+          "index2": 0,
+          "size": 42,
+          "cacheable": false,
+          "built": false,
+          "optional": false,
+          "prefetched": false,
+          "chunks": [
+            0
+          ],
+          "assets": [],
+          "issuer": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+          "profile": {
+            "factory": 0,
+            "building": 0
+          },
+          "failed": false,
+          "errors": 0,
+          "warnings": 0,
+          "reasons": [
+            {
+              "moduleId": 1,
+              "moduleIdentifier": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+              "module": "./src/js/index.js",
+              "moduleName": "./src/js/index.js",
+              "type": "amd require",
+              "userRequest": "jquery",
+              "loc": "5:0-206:2"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "identifier": "external \"underscore\"",
+          "name": "external \"underscore\"",
+          "index": 3,
+          "index2": 1,
+          "size": 42,
+          "cacheable": false,
+          "built": false,
+          "optional": false,
+          "prefetched": false,
+          "chunks": [
+            0
+          ],
+          "assets": [],
+          "issuer": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+          "profile": {
+            "factory": 0,
+            "building": 1
+          },
+          "failed": false,
+          "errors": 0,
+          "warnings": 0,
+          "reasons": [
+            {
+              "moduleId": 1,
+              "moduleIdentifier": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+              "module": "./src/js/index.js",
+              "moduleName": "./src/js/index.js",
+              "type": "amd require",
+              "userRequest": "underscore",
+              "loc": "5:0-206:2"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "identifier": "external \"loglevel\"",
+          "name": "external \"loglevel\"",
+          "index": 4,
+          "index2": 2,
+          "size": 42,
+          "cacheable": false,
+          "built": false,
+          "optional": false,
+          "prefetched": false,
+          "chunks": [
+            0
+          ],
+          "assets": [],
+          "issuer": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+          "profile": {
+            "factory": 1,
+            "building": 0
+          },
+          "failed": false,
+          "errors": 0,
+          "warnings": 0,
+          "reasons": [
+            {
+              "moduleId": 1,
+              "moduleIdentifier": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+              "module": "./src/js/index.js",
+              "moduleName": "./src/js/index.js",
+              "type": "amd require",
+              "userRequest": "loglevel",
+              "loc": "5:0-206:2"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "identifier": "external \"handlebars\"",
+          "name": "external \"handlebars\"",
+          "index": 5,
+          "index2": 3,
+          "size": 42,
+          "cacheable": false,
+          "built": false,
+          "optional": false,
+          "prefetched": false,
+          "chunks": [
+            0
+          ],
+          "assets": [],
+          "issuer": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+          "profile": {
+            "factory": 1,
+            "building": 0
+          },
+          "failed": false,
+          "errors": 0,
+          "warnings": 0,
+          "reasons": [
+            {
+              "moduleId": 1,
+              "moduleIdentifier": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+              "module": "./src/js/index.js",
+              "moduleName": "./src/js/index.js",
+              "type": "amd require",
+              "userRequest": "handlebars",
+              "loc": "5:0-206:2"
+            }
+          ]
+        }
+      ],
+      "filteredModules": 0,
+      "origins": [
+        {
+          "moduleId": 0,
+          "module": "multi app",
+          "moduleIdentifier": "multi app",
+          "moduleName": "multi app",
+          "loc": "",
+          "name": "app",
+          "reasons": []
+        }
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "id": 0,
+      "identifier": "multi app",
+      "name": "multi app",
+      "index": 0,
+      "index2": 5,
+      "size": 28,
+      "cacheable": true,
+      "built": true,
+      "optional": false,
+      "prefetched": false,
+      "chunks": [
+        0
+      ],
+      "assets": [],
+      "issuer": null,
+      "profile": {
+        "factory": 0,
+        "building": 1
+      },
+      "failed": false,
+      "errors": 0,
+      "warnings": 0,
+      "reasons": []
+    },
+    {
+      "id": 1,
+      "identifier": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+      "name": "./src/js/index.js",
+      "index": 1,
+      "index2": 4,
+      "size": 5393,
+      "cacheable": true,
+      "built": true,
+      "optional": false,
+      "prefetched": false,
+      "chunks": [
+        0
+      ],
+      "assets": [],
+      "issuer": "multi app",
+      "profile": {
+        "factory": 12,
+        "building": 35
+      },
+      "failed": false,
+      "errors": 0,
+      "warnings": 0,
+      "reasons": [
+        {
+          "moduleId": 0,
+          "moduleIdentifier": "multi app",
+          "module": "multi app",
+          "moduleName": "multi app",
+          "type": "single entry",
+          "userRequest": "./src/js/index.js"
+        }
+      ],
+      "source": "if (typeof define !== 'function') {\n    var define = require('amdefine')(module);\n}\n\ndefine([\n    'jquery',\n    'underscore',\n    'loglevel',\n    'handlebars'\n], function ($, _, log, Handlebars) {\n\n    'use strict';\n\n    function Converter() {\n        return this;\n    }\n\n    Converter.prototype.toD3P = function (items, values) {\n\n        var filter = {},\n            self = this;\n\n        _.each(values.values, function (val, id) {\n\n            var v = self.cleanArray(val),\n                config = items[id] || {},\n                formatConfig = config.format || {};\n\n            var key = formatConfig.items || id;\n\n            if (v.length > 0) {\n                filter[key] = $.extend(true, {}, self.compileFilter(id, v, items));\n            } else {\n                log.warn(id + \" column excluded from FENIX conversion because it has no values\");\n            }\n\n        });\n\n        return filter;\n    };\n\n    Converter.prototype.toFilter = function (items, values) {\n\n        var filter = {},\n            self = this;\n\n        _.each(values.values, function (val, id) {\n\n            var v = self.cleanArray(val),\n                config = items[id] || {},\n                formatConfig = config.format || {};\n\n            var key = formatConfig.metadataAttribute;\n\n            if (!key) {\n                log.warn(id + \" impossible to find format.metadataAttribute configuration\");\n                return;\n            }\n\n            if (v.length > 0) {\n                filter[key] = $.extend(true, {}, self.compileFilter(id, v, items));\n            } else {\n                log.warn(id + \" column excluded from FENIX filter because it has no values\");\n            }\n\n        });\n\n        return filter;\n    };\n\n    Converter.prototype.compileFilter = function (id, values, items) {\n\n        var config = items[id] || {},\n            formatConfig = config.format || {},\n            template = formatConfig.template,\n            output = formatConfig.output || \"codes\";\n\n        if (template) {\n            return this.compileTemplate(id, values, config, template);\n        }\n\n        var key = formatConfig.dimension || id,\n            tmpl;\n\n        switch (output.toLocaleLowerCase()) {\n            case \"freetext\" :\n\n                return this.createFreeTextFilter(id, values, config, key);\n\n                break;\n            case \"codes\" :\n\n                tmpl = '{ \"codes\":[{\"uid\": \"{{{uid}}}\", \"version\": \"{{version}}\", \"codes\": [{{{codes}}}] } ]}';\n                return this.compileTemplate(id, values, config, key, tmpl);\n\n                break;\n            case \"time\" :\n\n                return this.createTimeFilter(id, values, config, confkey);\n                break;\n\n            case \"enumeration\" :\n\n                return this.createEnumerationFilter(id, values, config, key);\n                break;\n            default :\n                log.warn(id + \" not included in the result set. Missing format configuration.\");\n                return {};\n        }\n\n    };\n\n    Converter.prototype.compileTemplate = function (id, values, config, key, template) {\n\n        /*\n         Priority\n         - values\n         - format configuration\n         - code list configuration\n         */\n\n        var model = $.extend(true, config.cl, config.format, {codes: '\"' + values.join('\",\"') + '\"'});\n\n        if (!template) {\n            log.error(\"Impossible to find '\" + id + \"' process template. Check your '\" + id + \"'.filter.process configuration.\")\n        }\n\n        if (!model.uid) {\n            log.error(\"Impossible to find '\" + id + \"' code list configuration for FENIX output format export.\");\n            return;\n        }\n\n        var tmpl = Handlebars.compile(template),\n            process = JSON.parse(tmpl(model)),\n            codes = process.codes;\n\n        //Remove empty version attributes\n        _.each(codes, function (obj) {\n            if (!obj.version) {\n                delete obj.version;\n            }\n        });\n\n        return process;\n\n    };\n\n    Converter.prototype.createTimeFilter = function (id, values, config, key) {\n\n        var time = [],\n            valuesAreObject = typeof values[0] === 'object',\n            v;\n\n        if (valuesAreObject) {\n\n            var from = _.findWhere(values, {parent: \"from\"}) || {},\n                to = _.findWhere(values, {parent: \"to\"}) || {},\n                couple = {from: null, to: null};\n\n            couple.from = from.value;\n            couple.to = to.value;\n\n            time.push($.extend({}, couple));\n\n        } else {\n\n            v = values.map(function (a) {\n                return parseInt(a, 10);\n            }).sort(function (a, b) {\n                return a - b;\n            });\n\n\n            _.each(v, function (i) {\n                time.push({from: i, to: i});\n            });\n\n        }\n\n        return {time: time};\n    };\n\n    Converter.prototype.createEnumerationFilter = function (id, values, config, key) {\n\n        return {enumeration: values};\n\n    };\n\n    Converter.prototype.createFreeTextFilter = function (id, values, config, key) {\n\n        return {text: values[0]};\n    };\n\n    Converter.prototype.cleanArray = function (actual) {\n        var newArray = [];\n        for (var i = 0; i < actual.length; i++) {\n            if (actual[i]) {\n                newArray.push(actual[i]);\n            }\n        }\n        return newArray;\n    };\n\n    return new Converter();\n\n});"
+    },
+    {
+      "id": 2,
+      "identifier": "external \"jquery\"",
+      "name": "external \"jquery\"",
+      "index": 2,
+      "index2": 0,
+      "size": 42,
+      "cacheable": false,
+      "built": false,
+      "optional": false,
+      "prefetched": false,
+      "chunks": [
+        0
+      ],
+      "assets": [],
+      "issuer": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+      "profile": {
+        "factory": 0,
+        "building": 0
+      },
+      "failed": false,
+      "errors": 0,
+      "warnings": 0,
+      "reasons": [
+        {
+          "moduleId": 1,
+          "moduleIdentifier": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+          "module": "./src/js/index.js",
+          "moduleName": "./src/js/index.js",
+          "type": "amd require",
+          "userRequest": "jquery",
+          "loc": "5:0-206:2"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "identifier": "external \"underscore\"",
+      "name": "external \"underscore\"",
+      "index": 3,
+      "index2": 1,
+      "size": 42,
+      "cacheable": false,
+      "built": false,
+      "optional": false,
+      "prefetched": false,
+      "chunks": [
+        0
+      ],
+      "assets": [],
+      "issuer": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+      "profile": {
+        "factory": 0,
+        "building": 1
+      },
+      "failed": false,
+      "errors": 0,
+      "warnings": 0,
+      "reasons": [
+        {
+          "moduleId": 1,
+          "moduleIdentifier": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+          "module": "./src/js/index.js",
+          "moduleName": "./src/js/index.js",
+          "type": "amd require",
+          "userRequest": "underscore",
+          "loc": "5:0-206:2"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "identifier": "external \"loglevel\"",
+      "name": "external \"loglevel\"",
+      "index": 4,
+      "index2": 2,
+      "size": 42,
+      "cacheable": false,
+      "built": false,
+      "optional": false,
+      "prefetched": false,
+      "chunks": [
+        0
+      ],
+      "assets": [],
+      "issuer": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+      "profile": {
+        "factory": 1,
+        "building": 0
+      },
+      "failed": false,
+      "errors": 0,
+      "warnings": 0,
+      "reasons": [
+        {
+          "moduleId": 1,
+          "moduleIdentifier": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+          "module": "./src/js/index.js",
+          "moduleName": "./src/js/index.js",
+          "type": "amd require",
+          "userRequest": "loglevel",
+          "loc": "5:0-206:2"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "identifier": "external \"handlebars\"",
+      "name": "external \"handlebars\"",
+      "index": 5,
+      "index2": 3,
+      "size": 42,
+      "cacheable": false,
+      "built": false,
+      "optional": false,
+      "prefetched": false,
+      "chunks": [
+        0
+      ],
+      "assets": [],
+      "issuer": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+      "profile": {
+        "factory": 1,
+        "building": 0
+      },
+      "failed": false,
+      "errors": 0,
+      "warnings": 0,
+      "reasons": [
+        {
+          "moduleId": 1,
+          "moduleIdentifier": "/home/daniele/repos/fenix/fenix-ui-converter/src/js/index.js",
+          "module": "./src/js/index.js",
+          "moduleName": "./src/js/index.js",
+          "type": "amd require",
+          "userRequest": "handlebars",
+          "loc": "5:0-206:2"
+        }
+      ]
+    }
+  ],
+  "filteredModules": 0,
+  "children": []
+}
