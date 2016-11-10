@@ -83,6 +83,11 @@ define([
             tmpl;
 
         switch (output.toLocaleLowerCase()) {
+            case "freeText" :
+
+                return this.createFreeTextFilter(id, values, config, key);
+
+                break;
             case "codes" :
 
                 tmpl = '{ "codes":[{"uid": "{{{uid}}}", "version": "{{version}}", "codes": [{{{codes}}}] } ]}';
@@ -91,7 +96,7 @@ define([
                 break;
             case "time" :
 
-                return this.createTimeFilter(id, values, config, key);
+                return this.createTimeFilter(id, values, config, confkey);
                 break;
 
             case "enumeration" :
@@ -179,6 +184,11 @@ define([
 
         return {enumeration: values};
 
+    };
+
+    Converter.prototype.createFreeTextFilter = function (id, values, config, key) {
+
+        return {freeText: values[0]};
     };
 
     Converter.prototype.cleanArray = function (actual) {
