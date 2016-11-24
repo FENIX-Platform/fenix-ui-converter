@@ -96,7 +96,7 @@ define([
                 break;
             case "time" :
 
-                return this.createTimeFilter(id, values, config, confkey);
+                return this.createTimeFilter(id, values, config, key);
                 break;
 
             case "enumeration" :
