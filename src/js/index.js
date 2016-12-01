@@ -26,7 +26,7 @@ define([
                 config = items[id] || {},
                 formatConfig = config.format || {};
 
-            var key = formatConfig.items || id;
+            var key = formatConfig.dimension || id;
 
             if (v.length > 0) {
                 filter[key] = $.extend(true, {}, self.compileFilter(id, v, items));
@@ -98,6 +98,10 @@ define([
 
                 return this.createTimeFilter(id, values, config, key);
                 break;
+            case "number" :
+
+                return this.createNumberFilter(id, values, config, key);
+                break;
 
             case "enumeration" :
 
@@ -143,6 +147,40 @@ define([
 
         return process;
 
+    };
+
+    Converter.prototype.createNumberFilter = function (id, values, config, key) {
+
+        var number = [],
+            valuesAreObject = typeof values[0] === 'object',
+            v;
+
+        if (valuesAreObject) {
+
+            var from = _.findWhere(values, {parent: "from"}) || {},
+                to = _.findWhere(values, {parent: "to"}) || {},
+                couple = {from: null, to: null};
+
+            couple.from = from.value;
+            couple.to = to.value;
+
+            number.push($.extend({}, couple));
+
+        } else {
+
+            v = values.map(function (a) {
+                return parseInt(a, 10);
+            }).sort(function (a, b) {
+                return a - b;
+            });
+
+            _.each(v, function (i) {
+                number.push({from: i, to: i});
+            });
+
+        }
+
+        return {number: number};
     };
 
     Converter.prototype.createTimeFilter = function (id, values, config, key) {

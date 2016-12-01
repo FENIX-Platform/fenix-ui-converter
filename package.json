@@ -1,6 +1,6 @@
 {
   "name": "fenix-ui-converter",
-  "version": "1.0.0-beta.7",
+  "version": "1.0.0-beta.10",
   "description": "FENIX ui converter",
   "main": "dist/fenix-ui-converter.min.js",
   "directories": {
