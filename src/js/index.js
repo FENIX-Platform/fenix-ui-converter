@@ -123,7 +123,8 @@ define([
          - code list configuration
          */
 
-        var model = $.extend(true, config.cl, config.format, {codes: '"' + values.join('","') + '"'});
+        var model = $.extend(true, config.cl);
+        model = $.extend(true, model, config.format, {codes: '"' + values.join('","') + '"'});
 
         if (!template) {
             log.error("Impossible to find '" + id + "' process template. Check your '" + id + "'.filter.process configuration.")
